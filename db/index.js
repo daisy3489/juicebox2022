@@ -210,19 +210,6 @@ async function createPostTag(postId, tagId) {
   }
 }
 
-async function addTagsToPost(postId, tagList) {
-  try {
-    const createPostTagPromises = tagList.map(
-      tag => createPostTag(postId, tag.id)
-    );
-
-    await Promise.all(createPostTagPromises);
-
-    return await getPostbyId(postId);
-  } catch (error) {
-      throw error;
-  }
-}
 
 async function getAllTags() {
   try{
@@ -248,6 +235,5 @@ module.exports = {
   getPostsByUser,
   createTags, 
   getAllTags,
-  createPostTag,
-  addTagsToPost
+  createPostTag
 }

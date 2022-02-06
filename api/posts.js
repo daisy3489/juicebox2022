@@ -17,33 +17,36 @@ postsRouter.use((req, res, next) => {
 // NEW
 const { getAllPosts } = require('../db');
 
-postsRouter.post('/', requireUser, async (req, res, next) => {
-  const { title, content, tags = "" } = req.body;
+postsRouter.patch('/:postId', requireUser, async (req, res, next) => {
+  const { postId } = req.params;
+  const { title, content, tags } = req.body;
 
-  const tagArr = tags.trim().split(/\s+/)
-  const postData = {};
+  const updateFields = {};
 
-  // only send the tags if there are some to send
-  if (tagArr.length) {
-    postData.tags = tagArr;
+  if (tags && tags.length > 0) {
+    updateFields.tags = tags.trim().split(/\s+/);
+  }
+
+  if (title) {
+    updateFields.title = title;
+  }
+
+  if (content) {
+    updateFields.content = content;
   }
 
   try {
-    // add authorId, title, content to postData object
+    const originalPost = await getPostById(postId);
 
-    // const post = await createPost(postData);
-    // this will create the post and the tags for us
-    const posts = await createPost(postData);
-    // if the post comes back, res.send({ post });
-    // otherwise, next an appropriate error object 
-    if (posts) {
-      res.send({
-        posts
-      });
-    }else {
-      next({});
+    if (originalPost.author.id === req.user.id) {
+      const updatedPost = await updatePost(postId, updateFields);
+      res.send({ post: updatedPost })
+    } else {
+      next({
+        name: 'UnauthorizedUserError',
+        message: 'You cannot update a post that is not yours'
+      })
     }
-    
   } catch ({ name, message }) {
     next({ name, message });
   }
